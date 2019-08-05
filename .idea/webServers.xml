@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="dd1b1829-aef6-4676-8857-632c2dba62de" name="data_center" url="http://222.200.182.82">
+        <fileTransfer host="222.200.182.82" port="55558" rootFolder="/home/jiachang/tf_object_centric" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="55558" />
+        </fileTransfer>
+      </webServer>
+      <webServer id="17c150dd-404a-4aa0-af0d-b0abea31627f" name="s2.so-link.org" url="http://s2.so-link.org">
+        <fileTransfer host="s2.so-link.org" port="9248" rootFolder="/home/fjc" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="9248" />
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
