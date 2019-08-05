@@ -1,7 +1,24 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="05e996ce-6858-4177-9be9-32a9714af4e7" name="Default Changelist" comment="" />
+    <list default="true" id="05e996ce-6858-4177-9be9-32a9714af4e7" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/tf_object_centric.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/tf_object_centric.iml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/models/CAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/CAE.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/label_map_util.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/mscoco_label_map.pbtxt" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/shape_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/standard_fields.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/string_int_label_map.proto" beforeDir="false" afterPath="$PROJECT_DIR$/object_detection/protos/string_int_label_map.proto" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/string_int_label_map_pb2.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/object_detection_utils/visualization_utils.py" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/inference.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/inference.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/test.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/scripts/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/train.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/utils/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/util.py" afterDir="false" />
+    </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -15,15 +32,21 @@
       </list>
     </option>
   </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
+    <option name="ROOT_SYNC" value="DONT_SYNC" />
+  </component>
   <component name="ProjectId" id="1OquqhsER9082htTXvyXcnYCVQH" />
+  <component name="ProjectLevelVcsManager" settingsEditedManually="true" />
   <component name="PropertiesComponent">
+    <property name="SHARE_PROJECT_CONFIGURATION_FILES" value="true" />
     <property name="WebServerToolWindowFactoryState" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.mappings" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.highlight.symlinks" value="true" />
     <property name="WebServerToolWindowPanel.toolwindow.show.date" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.permissions" value="false" />
     <property name="WebServerToolWindowPanel.toolwindow.show.size" value="false" />
-    <property name="last_opened_file_path" value="$PROJECT_DIR$" />
+    <property name="last_opened_file_path" value="$PROJECT_DIR$/object_detection" />
     <property name="node.js.detected.package.eslint" value="true" />
     <property name="node.js.detected.package.tslint" value="true" />
     <property name="node.js.path.for.package.eslint" value="project" />
@@ -36,10 +59,12 @@
   </component>
   <component name="RecentsManager">
     <key name="MoveFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\tf_object_centric\object_detection\protos" />
       <recent name="D:\PycharmProjects\tf_object_centric\object_detection_utils" />
       <recent name="D:\PycharmProjects\tf_object_centric" />
     </key>
     <key name="CopyFile.RECENT_KEYS">
+      <recent name="D:\PycharmProjects\tf_object_centric\object_detection" />
       <recent name="D:\PycharmProjects\tf_object_centric\scripts" />
     </key>
   </component>
@@ -94,11 +119,22 @@
       <workItem from="1564717649467" duration="11738000" />
       <workItem from="1564819254244" duration="442000" />
       <workItem from="1564832309239" duration="18293000" />
-      <workItem from="1564908340893" duration="17972000" />
+      <workItem from="1564908340893" duration="43126000" />
     </task>
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="1" />
+  </component>
+  <component name="Vcs.Log.Tabs.Properties">
+    <option name="TAB_STATES">
+      <map>
+        <entry key="MAIN">
+          <value>
+            <State />
+          </value>
+        </entry>
+      </map>
+    </option>
   </component>
 </project>

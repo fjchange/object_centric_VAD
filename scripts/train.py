@@ -1,11 +1,12 @@
-from models import CAE
 import numpy as np
 import os
-import os.path as osp
+import sys
+sys.path.append('../')
+import argparse
+import tensorflow as tf
 from utils import util
 import sklearn.svm as svm
 from sklearn.cluster import KMeans
-import argparse
 from sklearn.externals import joblib
 from models import CAE
 
@@ -15,29 +16,24 @@ if not os.path.exists(prefix):
 
 model_save_path_pre=prefix+'tf_models/CAE_'
 summary_save_path_pre=prefix+'summary/CAE_'
-dataset='avenue'
-data_path=prefix+dataset+'/training/frames/'
 
 svm_save_path_pre=prefix+'clfs/'
 
 batch_size=64
 learning_rate=[1e-3,1e-4]
 lr_decay_epochs=[100]
+epochs=200
 
 def arg_parse():
     parser=argparse.ArgumentParser()
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
-    parser.add_argument('-e','--epochs',type=int,help='Train how many times?')
     args=parser.parse_args()
     return args
 
-def train_CAE(path_boxes_np):
-    args=arg_parse()
-    os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
+def train_CAE(path_boxes_np,args):
     epoch_len=len(np.load(path_boxes_np))
-    import tensorflow as tf
-    former_batch,gray_batch,back_batch=util.CAE_dataset(path_boxes_np,args.dataset,args.epochs,batch_size)
+    former_batch,gray_batch,back_batch=util.CAE_dataset(path_boxes_np,args.dataset,epochs,batch_size)
 
     former_outputs=CAE.CAE(former_batch,'former')
     gray_outputs=CAE.CAE(gray_batch,'gray')
@@ -47,12 +43,19 @@ def train_CAE(path_boxes_np):
     gray_loss=CAE.pixel_wise_L2_loss(gray_outputs,gray_batch)
     back_loss=CAE.pixel_wise_L2_loss(back_outputs,back_batch)
 
-    global_step=tf.Variable(0,trainable=False)
-    lr=tf.train.piecewise_constant_decay(global_step,lr_decay_epochs*int(epoch_len//batch_size),learning_rate)
+    global_step=tf.Variable(0,dtype=tf.int32,trainable=False)
+    lr_decay_epochs[0] =int(epoch_len//batch_size)*lr_decay_epochs[0]
 
-    former_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(former_loss)
-    gray_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(gray_loss)
-    back_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(back_loss)
+    lr=tf.train.piecewise_constant(global_step,boundaries=lr_decay_epochs,values=learning_rate)
+
+    former_vars=tf.get_collection(key=tf.GraphKeys.TRAINABLE_VARIABLES,scope='former_')
+    gray_vars=tf.get_collection(key=tf.GraphKeys.TRAINABLE_VARIABLES,scope='gray_')
+    back_vars=tf.get_collection(key=tf.GraphKeys.TRAINABLE_VARIABLES,scope='back_')
+    # print(former_vars)
+
+    former_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(former_loss,var_list=former_vars)
+    gray_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(gray_loss,var_list=gray_vars)
+    back_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(back_loss,var_list=back_vars)
 
     step=0
     writer=tf.summary.FileWriter(logdir=summary_save_path_pre+args.dataset)
@@ -67,30 +70,31 @@ def train_CAE(path_boxes_np):
     tf.summary.image('outputs/back',back_outputs)
     summary_op=tf.summary.merge_all()
 
-    slim=tf.contrib.slim
-
-    former_saver=tf.train.Saver(var_list=slim.get_variables_to_restore(include=('former_encoder','former_decoder')))
-    gray_saver=tf.train.Saver(var_list=slim.get_variables_to_restore(include=('gary_encoder','gray_decoder')))
-    back_saver=tf.train.Saver(var_list=slim.get_variables_to_restore(include=('back_encoder','back_decoder')))
+    saver=tf.train.Saver(var_list=tf.global_variables())
 
     with tf.Session() as sess:
-        while step<args.epochs*(epoch_len//batch_size):
-            step,_,_,_,_former_loss,_gray_loss,_back_loss=sess.run([global_step,former_op,gray_op,back_op,former_loss,gray_loss,back_loss])
-            if step%10==0:
-                print('At step {}'.format(step))
-                print('\tFormer Loss {.4f}'.format(_former_loss))
-                print('\tGray Loss {.4f}'.format(_gray_loss))
-                print('\tBack Loss {.4f}'.format(_back_loss))
+        sess.run(tf.global_variables_initializer())
+        coord=tf.train.Coordinator()
+        threads=tf.train.start_queue_runners(sess=sess,coord=coord)
+        while step<epochs*(epoch_len//batch_size):
+            f,g,b=sess.run([former_batch,gray_batch,back_batch])
+            print(step)
+            #step,_,_,_,_former_loss,_gray_loss,_back_loss=sess.run([global_step,former_op,gray_op,back_op,former_loss,gray_loss,back_loss])
+            # if step%10==0:
+            #     print('At step {}'.format(step))
+            #     print('\tFormer Loss {.4f}'.format(_former_loss))
+            #     print('\tGray Loss {.4f}'.format(_gray_loss))
+            #     print('\tBack Loss {.4f}'.format(_back_loss))
 
             if step%50==0:
                 _summary=sess.run(summary_op)
                 writer.add_summary(_summary,global_step=step)
 
-        former_saver.save(sess,model_save_path_pre+'former.ckpt',global_step=step)
-        gray_saver.save(sess,model_save_path_pre+'gray.ckpt',global_step=step)
-        back_saver.save(sess,model_save_path_pre+'back.ckpt',global_step=step)
+        saver.save(sess,model_save_path_pre+args.dataset,global_step=step)
 
         print('train finished!')
+        coord.request_stop()
+        coord.join(threads)
         sess.close()
 
 def _get_Y(labels,k):
@@ -102,16 +106,12 @@ def _get_Y(labels,k):
             Y[i]=1
     return Y
 
-def extract_features(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_path):
-    args=arg_parse()
+def extract_features(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_path,args):
     former_batch,gray_batch,back_batch=util.CAE_dataset(path_boxes_np,args.dataset,1,1)
     iters=np.load(path_boxes_np).__len__()
     former_feat=CAE.CAE_encoder(former_batch,'former')
     gray_feat=CAE.CAE_encoder(gray_batch,'gray')
     back_feat=CAE.CAE_encoder(back_batch,'back')
-
-    os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
-    import tensorflow as tf
 
     feat=tf.concat([tf.layers.flatten(former_feat),tf.layers.flatten(gray_feat),tf.layers.flatten(back_feat)],axis=1)
 
@@ -133,7 +133,7 @@ def extract_features(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_path):
 
     return data
 
-def train_one_vs_rest_SVM(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_path,K):
+def train_one_vs_rest_SVM(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_path,K,args):
     data=extract_features(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_path)
     # clusters, the data to be clustered by Kmeans
     clusters=KMeans(n_clusters=K,init='k-means++',n_init=10,algorithm='full').fit(data)
@@ -145,11 +145,13 @@ def train_one_vs_rest_SVM(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_p
         Y=_get_Y(clusters.labels_,i)
         clfs[i].fit(data,Y)
 
-        joblib.dump(clfs[i],svm_save_path_pre+dataset+'_'+str(i)+'.m')
+        joblib.dump(clfs[i],svm_save_path_pre+args.dataset+'_'+str(i)+'.m')
 
 
-if __name__=='__name__':
-    train_CAE('')
+if __name__=='__main__':
+    args=arg_parse()
+    os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
+    train_CAE(prefix+args.dataset+'_img_path_box.npy',args)
 
 
 

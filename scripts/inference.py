@@ -4,15 +4,16 @@ import sys
 sys.path.append('../')
 import tensorflow as tf
 from utils import util
-from object_detection_utils import label_map_util
-from object_detection_utils import visualization_utils as vis_util
-import cv2
+from object_detection.utils import label_map_util
+from object_detection.utils import visualization_utils as vis_util
+import matplotlib.pyplot as plt
 import argparse
 
 MODEL_NAME='/home/jiachang/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
 
 PATH_TO_FROZEN_GRAPH=MODEL_NAME+'/frozen_inference_graph.pb'
-PATH_TO_LABELS='../utils/mscoco_label_map.pbtxt'
+PATH_TO_CKPT=MODEL_NAME+'/'
+PATH_TO_LABELS='../object_detection/data/mscoco_label_map.pbtxt'
 
 prefix='/data/jiachang/'
 if not os.path.exists(prefix):
@@ -39,6 +40,7 @@ def load_frozen_graph():
 
 def run_inference_for_images_per_image(graph,image_folder,np_boxes_path,score_threshold):
     frame_lists=util.get_frames_paths(image_folder,gap=2)
+    image_height,image_width=0,0
     with graph.as_default():
         ops=tf.get_default_graph().get_operations()
         all_tensor_names={output.name for op in ops for output in op.outputs}
@@ -55,9 +57,9 @@ def run_inference_for_images_per_image(graph,image_folder,np_boxes_path,score_th
 
         with tf.Session() as sess:
             path_box_lists=[]
-            count=0
             for i,frame_path in enumerate(frame_lists):
                 image=util.data_preprocessing(frame_path)
+                image_width,image_height=image.shape[0],image.shape[1]
                 image=np.expand_dims(image,axis=0)
 
                 # Run inference
@@ -73,10 +75,11 @@ def run_inference_for_images_per_image(graph,image_folder,np_boxes_path,score_th
 
                 for score,box in zip(output_dict['detection_scores'],output_dict['detection_boxes']):
                     if score>=score_threshold:
-                        path_box_lists.append([frame_path,box])
-                        count+=1
-                        print('{} added!'.format(count))
+                        path_box_lists.append([frame_path,box[0],box[1],box[2],box[3]])
+                print(i)
+
             sess.close()
+
             np.save(np_boxes_path,path_box_lists)
             print('finish boxes detection!')
 
@@ -100,31 +103,33 @@ def vis_detection_result(graph,image_path,output_image_path):
             image = util.data_preprocessing(image_path)
             image_np = np.expand_dims(image, axis=0)
             output_dict=sess.run(tensor_dict,feed_dict={image_tensor:image_np})
-            print(output_dict)
+            # print(output_dict)
             # all outputs are float32 numpy arrays, so convert types as appropriate
             output_dict['num_detections'] = int(output_dict['num_detections'][0])
             output_dict['detection_classes'] = output_dict[
                 'detection_classes'][0].astype(np.int64)
             output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
             output_dict['detection_scores'] = output_dict['detection_scores'][0]
-            print(output_dict)
-            return output_dict
+            #print(output_dict)
+            # return output_dict
+            print('output_dict[\'detection_boxes\'] shape is {}'.format(output_dict['detection_boxes'].shape))
+            print('output_dict[\'detection_scores\'] shape is {}'.format(output_dict['detection_scores'].shape))
 
-            # category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
-            #
-            # image=vis_util.visualize_boxes_and_labels_on_image_array(
-            #     image,
-            #     output_dict['detection_boxes'],
-            #     output_dict['detection_classes'],
-            #     output_dict['detection_scores'],
-            #     category_index,
-            #     instance_masks=output_dict.get('detection_masks'),
-            #     use_normalized_coordinates=True,
-            #     line_thickness=8)
-            #
-            # cv2.imwrite(output_image_path,image)
+            category_index = label_map_util.create_category_index_from_labelmap(PATH_TO_LABELS, use_display_name=True)
 
-            #sess.close()
+            image=vis_util.visualize_boxes_and_labels_on_image_array(
+                image,
+                output_dict['detection_boxes'],
+                output_dict['detection_classes'],
+                output_dict['detection_scores'],
+                category_index,
+                instance_masks=output_dict.get('detection_masks'),
+                use_normalized_coordinates=True,
+                line_thickness=3,min_score_thresh=0.4)
+
+            plt.imsave(output_image_path,image)
+
+            sess.close()
 
 
 def run_inference_get_feature(graph,image_folder):
@@ -151,10 +156,10 @@ def run_inference_get_feature(graph,image_folder):
 if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
-    # np_paths_boxes_path = prefix+args.dataset+'_'+'img_path_box.npy'
+    np_paths_boxes_path = prefix+args.dataset+'_'+'img_path_box.txt'
     image_dataset_path=prefix+args.dataset+'/training/frames/'
-    print(image_dataset_path)
+    # print(image_dataset_path)
     graph=load_frozen_graph()
     frame_lists=util.get_frames_paths(image_dataset_path,gap=2)
-    print(vis_detection_result(graph,frame_lists[50],'/home/jiachang/vis_result.jpg'))
-    # run_inference_for_images_per_image(graph,image_dataset_path,np_paths_boxes_path,0.4)
+    # vis_detection_result(graph,frame_lists[240],'/home/jiachang/vis_result.jpg')
+    run_inference_for_images_per_image(graph,image_dataset_path,np_paths_boxes_path,0.5)
