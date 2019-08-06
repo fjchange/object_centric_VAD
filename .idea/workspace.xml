@@ -2,20 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="05e996ce-6858-4177-9be9-32a9714af4e7" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/deployment.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/deployment.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/misc.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/tf_object_centric.iml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/tf_object_centric.iml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/models/CAE.py" beforeDir="false" afterPath="$PROJECT_DIR$/models/CAE.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/label_map_util.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/mscoco_label_map.pbtxt" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/shape_utils.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/standard_fields.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/string_int_label_map.proto" beforeDir="false" afterPath="$PROJECT_DIR$/object_detection/protos/string_int_label_map.proto" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/string_int_label_map_pb2.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/object_detection_utils/visualization_utils.py" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/inference.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/inference.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/scripts/test.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/test.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/scripts/train.py" beforeDir="false" afterPath="$PROJECT_DIR$/scripts/train.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/utils/util.py" beforeDir="false" afterPath="$PROJECT_DIR$/utils/util.py" afterDir="false" />
     </list>
@@ -119,8 +106,16 @@
       <workItem from="1564717649467" duration="11738000" />
       <workItem from="1564819254244" duration="442000" />
       <workItem from="1564832309239" duration="18293000" />
-      <workItem from="1564908340893" duration="43126000" />
+      <workItem from="1564908340893" duration="49041000" />
     </task>
+    <task id="LOCAL-00001" summary="mm">
+      <created>1565014007840</created>
+      <option name="number" value="00001" />
+      <option name="presentableId" value="LOCAL-00001" />
+      <option name="project" value="LOCAL" />
+      <updated>1565014007840</updated>
+    </task>
+    <option name="localTasksCounter" value="2" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
@@ -136,5 +131,9 @@
         </entry>
       </map>
     </option>
+  </component>
+  <component name="VcsManagerConfiguration">
+    <MESSAGE value="mm" />
+    <option name="LAST_COMMIT_MESSAGE" value="mm" />
   </component>
 </project>

@@ -4,6 +4,8 @@ import sys
 sys.path.append('../')
 import argparse
 import tensorflow as tf
+tf.logging.set_verbosity(tf.logging.DEBUG)
+
 from utils import util
 import sklearn.svm as svm
 from sklearn.cluster import KMeans
@@ -33,11 +35,22 @@ def arg_parse():
 
 def train_CAE(path_boxes_np,args):
     epoch_len=len(np.load(path_boxes_np))
-    former_batch,gray_batch,back_batch=util.CAE_dataset(path_boxes_np,args.dataset,epochs,batch_size)
+    f_imgs,g_imgs,b_imgs=util.CAE_dataset_feed_dict(path_boxes_np,dataset_name=args.dataset)
+    #former_batch,gray_batch,back_batch=util.CAE_dataset(path_boxes_np,args.dataset,epochs,batch_size)
+    former_batch=tf.placeholder(dtype=tf.float32,shape=[batch_size,64,64,1],name='former_batch')
+    gray_batch=tf.placeholder(dtype=tf.float32,shape=[batch_size,64,64,1],name='gray_batch')
+    back_batch=tf.placeholder(dtype=tf.float32,shape=[batch_size,64,64,1],name='back_batch')
 
-    former_outputs=CAE.CAE(former_batch,'former')
+    grad1_x,grad1_y=tf.image.image_gradients(former_batch)
+    grad2_x,grad2_y=tf.image.image_gradients(gray_batch)
+    grad3_x,grad3_y=tf.image.image_gradients(back_batch)
+
+    grad_dis_1=tf.sqrt(tf.square(grad2_x-grad1_x)+tf.square(grad2_y-grad1_y))
+    grad_dis_2=tf.sqrt(tf.square(grad3_x-grad2_x)+tf.square(grad3_y-grad2_y))
+
+    former_outputs=CAE.CAE(grad_dis_1,'former')
     gray_outputs=CAE.CAE(gray_batch,'gray')
-    back_outputs=CAE.CAE(back_batch,'back')
+    back_outputs=CAE.CAE(grad_dis_2,'back')
 
     former_loss=CAE.pixel_wise_L2_loss(former_outputs,former_batch)
     gray_loss=CAE.pixel_wise_L2_loss(gray_outputs,gray_batch)
@@ -71,30 +84,31 @@ def train_CAE(path_boxes_np,args):
     summary_op=tf.summary.merge_all()
 
     saver=tf.train.Saver(var_list=tf.global_variables())
+    indices=np.arange(start=0,stop=epoch_len,step=1)
 
     with tf.Session() as sess:
         sess.run(tf.global_variables_initializer())
-        coord=tf.train.Coordinator()
-        threads=tf.train.start_queue_runners(sess=sess,coord=coord)
-        while step<epochs*(epoch_len//batch_size):
-            f,g,b=sess.run([former_batch,gray_batch,back_batch])
-            print(step)
-            #step,_,_,_,_former_loss,_gray_loss,_back_loss=sess.run([global_step,former_op,gray_op,back_op,former_loss,gray_loss,back_loss])
-            # if step%10==0:
-            #     print('At step {}'.format(step))
-            #     print('\tFormer Loss {.4f}'.format(_former_loss))
-            #     print('\tGray Loss {.4f}'.format(_gray_loss))
-            #     print('\tBack Loss {.4f}'.format(_back_loss))
+        for epoch in range(epochs):
+            np.random.shuffle(indices)
+            for i in range(epoch_len//batch_size):
+                feed_dict={former_batch:f_imgs[indices[i*batch_size:(i+1)*batch_size]],
+                           gray_batch:g_imgs[indices[i*batch_size:(i+1)*batch_size]],
+                           back_batch:b_imgs[indices[i*batch_size:(i+1)*batch_size]]
+                           }
+                step,_,_,_,_former_loss,_gray_loss,_back_loss=sess.run([global_step,former_op,gray_op,back_op,former_loss,gray_loss,back_loss],feed_dict=feed_dict)
+                if step%10==0:
+                    print('At step {}'.format(step))
+                    print('\tFormer Loss {.4f}'.format(_former_loss))
+                    print('\tGray Loss {.4f}'.format(_gray_loss))
+                    print('\tBack Loss {.4f}'.format(_back_loss))
 
-            if step%50==0:
-                _summary=sess.run(summary_op)
-                writer.add_summary(_summary,global_step=step)
+                if step%50==0:
+                    _summary=sess.run(summary_op,feed_dict=feed_dict)
+                    writer.add_summary(_summary,global_step=step)
 
         saver.save(sess,model_save_path_pre+args.dataset,global_step=step)
 
         print('train finished!')
-        coord.request_stop()
-        coord.join(threads)
         sess.close()
 
 def _get_Y(labels,k):
@@ -151,7 +165,7 @@ def train_one_vs_rest_SVM(path_boxes_np,CAE_former_path,CAE_gray_path,CAE_back_p
 if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
-    train_CAE(prefix+args.dataset+'_img_path_box.npy',args)
+    train_CAE('/home/jiachang/'+args.dataset+'_img_path_box.npy',args)
 
 
 
