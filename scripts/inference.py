@@ -11,20 +11,23 @@ import argparse
 
 MODEL_NAME='/home/jiachang/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
 
-PATH_TO_FROZEN_GRAPH=MODEL_NAME+'/frozen_inference_graph.pb'
-PATH_TO_CKPT=MODEL_NAME+'/'
-PATH_TO_LABELS='../object_detection/data/mscoco_label_map.pbtxt'
-
 prefix='/data/jiachang/'
 if not os.path.exists(prefix):
     prefix='/data0/jiachang/'
     if not os.path.exists(prefix):
-        prefix='/hdd/fjc/'
+        prefix='/home/manning/'
+        MODEL_NAME='/home/manning/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
+
+
+PATH_TO_FROZEN_GRAPH=MODEL_NAME+'/frozen_inference_graph.pb'
+PATH_TO_CKPT=MODEL_NAME+'/'
+PATH_TO_LABELS='../object_detection/data/mscoco_label_map.pbtxt'
 
 def arg_parse():
     parser=argparse.ArgumentParser()
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
+    parser.add_argument('-m','--machine',type=str,help='Which machine is using?')
     args=parser.parse_args()
     return args
 
@@ -58,8 +61,7 @@ def run_inference_for_images_per_image(graph,image_folder,np_boxes_path,score_th
         with tf.Session() as sess:
             path_box_lists=[]
             for i,frame_path in enumerate(frame_lists):
-                image=util.data_preprocessing(frame_path)
-                image_width,image_height=image.shape[0],image.shape[1]
+                image=util.data_preprocessing(frame_path,target_size=640)
                 image=np.expand_dims(image,axis=0)
 
                 # Run inference
@@ -100,7 +102,7 @@ def vis_detection_result(graph,image_path,output_image_path):
 
         with tf.Session() as sess:
             print('get in the session')
-            image = util.data_preprocessing(image_path)
+            image = util.data_preprocessing(image_path,target_size=640)
             image_np = np.expand_dims(image, axis=0)
             output_dict=sess.run(tensor_dict,feed_dict={image_tensor:image_np})
             # print(output_dict)
@@ -125,7 +127,7 @@ def vis_detection_result(graph,image_path,output_image_path):
                 category_index,
                 instance_masks=output_dict.get('detection_masks'),
                 use_normalized_coordinates=True,
-                line_thickness=3,min_score_thresh=0.4)
+                line_thickness=3,min_score_thresh=0.3)
 
             plt.imsave(output_image_path,image)
 
@@ -156,10 +158,10 @@ def run_inference_get_feature(graph,image_folder):
 if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
-    np_paths_boxes_path = prefix+args.dataset+'_'+'img_path_box.txt'
+    np_paths_boxes_path = '/home/'+args.machine+'/'+args.dataset+'_'+'img_path_box.npy'
     image_dataset_path=prefix+args.dataset+'/training/frames/'
     # print(image_dataset_path)
     graph=load_frozen_graph()
     frame_lists=util.get_frames_paths(image_dataset_path,gap=2)
-    # vis_detection_result(graph,frame_lists[240],'/home/jiachang/vis_result.jpg')
+    # vis_detection_result(graph,frame_lists[20],'/home/'+args.machine+'/vis_result.jpg')
     run_inference_for_images_per_image(graph,image_dataset_path,np_paths_boxes_path,0.5)

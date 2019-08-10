@@ -18,6 +18,14 @@
           <option name="port" value="9248" />
         </fileTransfer>
       </webServer>
+      <webServer id="a3c20a74-2b1b-430f-95a7-7dd87949b0f8" name="manning" url="http://172.18.218.155">
+        <fileTransfer host="172.18.218.155" port="22" rootFolder="/home/manning/tf_object_centric" accessType="SFTP">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+          <option name="port" value="22" />
+        </fileTransfer>
+      </webServer>
     </option>
   </component>
 </project>

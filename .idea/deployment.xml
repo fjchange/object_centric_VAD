@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
-  <component name="PublishConfigData" autoUpload="Always" serverName="data_center" showNewOnSourceInSync="false">
+  <component name="PublishConfigData" autoUpload="Always" serverName="manning@172.18.218.155:22" showNewOnSourceInSync="false">
     <serverData>
       <paths name="data_center">
         <serverdata>
@@ -13,6 +13,20 @@
         <serverdata>
           <mappings>
             <mapping deploy="/home/jiachang/tf_object_centric" local="$PROJECT_DIR$" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="manning">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+          </mappings>
+        </serverdata>
+      </paths>
+      <paths name="manning@172.18.218.155:22">
+        <serverdata>
+          <mappings>
+            <mapping deploy="/home/manning/tf_object_centric" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>
