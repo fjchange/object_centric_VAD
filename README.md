@@ -20,7 +20,7 @@ The framework include Three Parts:
  4. Use K OVC SVMs to calculate the anomaly score.
  
  ## Datasets
- You can get the download link from StevenLiu/ano_pred_cvpr2018
+ You can get the download link from github.com/StevenLiuWen/ano_pred_cvpr2018
  
  ## Path Setting
  Several paths you need to set as below:
