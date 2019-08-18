@@ -8,6 +8,7 @@ Recently, I haven't got the results as well as the paper mentioned.
 > tensorflow >=1.5.0 ( I use tensorflow 1.10.0 )
 >
 > scikit-learn
+>
 > cyvlfeat (install by anaconda recommended)
 
 
