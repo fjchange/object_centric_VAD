@@ -11,8 +11,11 @@ import sklearn.svm as svm
 from sklearn.cluster import KMeans
 from sklearn.externals import joblib
 from models import CAE
+from sklearn.linear_model import SGDClassifier
+from sklearn.multiclass import OneVsRestClassifier
 
 from cyvlfeat.kmeans import kmeans,kmeans_quantize
+
 
 summary_save_path_pre='/home/jiachang/summary/CAE_'
 svm_save_path_pre='/home/jiachang/clfs/'
@@ -184,23 +187,34 @@ def train_one_vs_rest_SVM(path_boxes_np,CAE_model_path,K,args):
     print('feature extraction finish!')
     # clusters, the data to be clustered by Kmeans
     # clusters=KMeans(n_clusters=K,init='k-means++',n_init=10,algorithm='full',max_iter=300).fit(data)
-    centers=kmeans(data,num_centers=K,initialization='PLUSPLUS',num_repetitions=10,max_num_comparisons=300,max_num_iterations=300)
+    centers=kmeans(data,num_centers=K,initialization='PLUSPLUS',num_repetitions=10,
+                   max_num_comparisons=100,max_num_iterations=100,algorithm='LLOYD',num_trees=3)
     labels=kmeans_quantize(data,centers)
+
+    # to get the sparse matrix of labels
+    sparse_labels=np.eye(K)[labels]
+    sparse_labels=(sparse_labels-0.5)*2
+
     # nums=np.zeros(10,dtype=int)
     # for item in clusters.labels_:
     #     nums[item]+=1
     # print(nums)
     print('clustering finished!')
     # One-Verse-Rest SVM: to train OVC-SVM for
-    clf=svm.LinearSVC(C=1.0,multi_class='ovr',max_iter=len(labels)*5)
-    clf.fit(data,labels)
-    joblib.dump(clf,svm_save_path_pre+args.dataset+'.m')
+    base_estimizer=SGDClassifier(max_iter=10000,warm_start=True,loss='hinge',early_stopping=True,n_iter_no_change=50,l1_ratio=0)
+    ovr_classifer=OneVsRestClassifier(base_estimizer)
+
+    #clf=svm.LinearSVC(C=1.0,multi_class='ovr',max_iter=len(labels)*5,loss='hinge',)
+    ovr_classifer.fit(data,sparse_labels)
+    joblib.dump(ovr_classifer,svm_save_path_pre+args.dataset+'.m')
     print('train finished!')
+
 
 if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
+    # train CAE first than, train SVM
     train_CAE('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',args)
-    #train_one_vs_rest_SVM('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',model_save_path_pre+args.dataset,15,args)
+    #train_one_vs_rest_SVM('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',model_save_path_pre+args.dataset,10,args)
 
 
