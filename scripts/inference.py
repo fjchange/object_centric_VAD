@@ -27,7 +27,6 @@ def arg_parse():
     parser=argparse.ArgumentParser()
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
-    parser.add_argument('-m','--machine',type=str,help='Which machine is using?')
     args=parser.parse_args()
     return args
 
