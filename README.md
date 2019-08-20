@@ -12,8 +12,21 @@ Recently, I haven't got the results as well as the paper mentioned.
 > cyvlfeat (install by anaconda recommended)
 
 
-## Difference between the Author' Work
-- Replace VlFeat with scikit-learn, which is much more popular.
+## Difference between the Author' Workr 
+Considering the author finish the work on Matlab with Vlfeat, there is no complete python version of version available now.
+So I
+- Replace VlFeat's SVM with Sklearn's  OneVsRestClassifier with SGDClassifier as basic estimizer. ( As the author said, SDCA optimizer and hinge loss work well, but there is no SDCA optimizer in sklearn.)
+
+You can also 
+- To use C verision Dynamic Libray of Vlfeat by cffi / cython
+- To use tesnorflow to realize the SVM (TF has SDCA optimizer)
+
+## About Score Calculation and Score Smoothing
+1. __The method of AUC calculation may leads to unfair comparison__
+Author calculate the AUC by calculate all the video's AUC first, and then calculate the mean of them as the AUC of the dataset (which is in utils/evaluate.py compute_auc_averate). The evaluate.py is borrowed from StevenLiuWen/ano_pred_cvpr2018, which concat all the videos first, and then calculate the AUC as the dataset's AUC.
+
+2. __Score Smoothing influence the Result Output__
+There two parameters in score_smoothing (which is utils/util.py), the parameters can influence the final result.
 
 ## Framework Overview
 The framework include Three Parts:
