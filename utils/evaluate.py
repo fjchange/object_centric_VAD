@@ -13,13 +13,15 @@ if not os.path.exists(DATA_DIR):
     DATA_DIR='/data0/jiachang/'
     if not os.path.exists(DATA_DIR):
         DATA_DIR='/home/manning/'
+    if not os.path.exists(DATA_DIR):
+        DATA_DIR='../anotations/'
 
 # normalize scores in each sub video
 NORMALIZE = True
 
 # number of history frames, since in prediction based method, the first 4 frames can not be predicted, so that
 # the first 4frames are undecidable, we just ignore the first 4 frames
-DECIDABLE_IDX = 0
+DECIDABLE_IDX = 2
 
 
 def parser_args():
@@ -306,7 +308,7 @@ def load_psnr(loss_file):
     return psnrs
 
 
-def get_scores_labels(loss_file):
+def get_scores_labels(loss_file,reverse,smoothing):
     # the name of dataset, loss, and ground truth
     dataset, psnr_records, gt = load_psnr_gt(loss_file=loss_file)
 
@@ -320,17 +322,19 @@ def get_scores_labels(loss_file):
         distance = psnr_records[i]
 
         if NORMALIZE:
-            distance -= distance.min()  # distances = (distance - min) / (max - min)
-            distance /= distance.max()
-            distance = 1 - distance
-
-        temp = score_smoothing(distance)
-        scores = np.concatenate((scores[:], temp), axis=0)
-        labels = np.concatenate((labels[:], gt[i]), axis=0)
+            distance = (distance - distance.min()) / (distance.max() - distance.min() + 1e-8)
+            #distance -= distance.min()  # distances = (distance - min) / (max - min)
+            #distance /= distance.max()
+            if reverse:
+                distance = 1 - distance
+        if smoothing:
+            distance = score_smoothing(distance)
+        scores = np.concatenate((scores[:], distance[DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
+        labels = np.concatenate((labels[:], gt[i][DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
     return dataset, scores, labels
 
 
-def precision_recall_auc(loss_file):
+def precision_recall_auc(loss_file,reverse,smoothing):
     if not os.path.isdir(loss_file):
         loss_file_list = [loss_file]
     else:
@@ -339,7 +343,7 @@ def precision_recall_auc(loss_file):
 
     optimal_results = RecordResult()
     for sub_loss_file in loss_file_list:
-        dataset, scores, labels = get_scores_labels(sub_loss_file)
+        dataset, scores, labels = get_scores_labels(sub_loss_file,reverse,smoothing)
         precision, recall, thresholds = metrics.precision_recall_curve(labels, scores, pos_label=0)
         auc = metrics.auc(recall, precision)
 
@@ -360,7 +364,7 @@ def cal_eer(fpr, tpr):
     return eer
 
 
-def compute_eer(loss_file):
+def compute_eer(loss_file,reverse,smoothing):
     if not os.path.isdir(loss_file):
         loss_file_list = [loss_file]
     else:
@@ -369,7 +373,7 @@ def compute_eer(loss_file):
 
     optimal_results = RecordResult(auc=np.inf)
     for sub_loss_file in loss_file_list:
-        dataset, scores, labels = get_scores_labels(sub_loss_file)
+        dataset, scores, labels = get_scores_labels(sub_loss_file,reverse,smoothing)
         fpr, tpr, thresholds = metrics.roc_curve(labels, scores, pos_label=0)
         eer = cal_eer(fpr, tpr)
 
@@ -384,7 +388,7 @@ def compute_eer(loss_file):
     return optimal_results
 
 
-def compute_auc(loss_file):
+def compute_auc(loss_file,reverse,smoothing):
     if not os.path.isdir(loss_file):
         loss_file_list = [loss_file]
     else:
@@ -406,15 +410,17 @@ def compute_auc(loss_file):
             distance = psnr_records[i]
 
             if NORMALIZE:
-
-                distance -= distance.min()  # distances = (distance - min) / (max - min)
-                distance /= distance.max()
+                distance=(distance-distance.min())/(distance.max()-distance.min()+1e-8)
+                # distance -= distance.min()  # distances = (distance - min) / (max - min)
+                # distance /= distance.max()
                 # for the score is anomaly score
-                distance = 1 - distance
+                if reverse:
+                    distance = 1 - distance
             # to smooth the score
-            temp=score_smoothing(distance)
-            scores = np.concatenate((scores, temp), axis=0)
-            labels = np.concatenate((labels, gt[i]), axis=0)
+            if smoothing:
+                distance = score_smoothing(distance)
+            scores = np.concatenate((scores[:], distance[DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
+            labels = np.concatenate((labels[:], gt[i][DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
 
         fpr, tpr, thresholds = metrics.roc_curve(labels, scores, pos_label=0)
         auc = metrics.auc(fpr, tpr)
@@ -429,8 +435,68 @@ def compute_auc(loss_file):
     print('##### optimal result and model AUC= {}'.format(optimal_results))
     return optimal_results
 
+def compute_auc_average(loss_file,reverse,smoothing):
+    if not os.path.isdir(loss_file):
+        loss_file_list = [loss_file]
+    else:
+        loss_file_list = os.listdir(loss_file)
+        loss_file_list = [os.path.join(loss_file, sub_loss_file) for sub_loss_file in loss_file_list]
 
-def average_psnr(loss_file):
+    optimal_results = RecordResult()
+    for sub_loss_file in loss_file_list:
+        # the name of dataset, loss, and ground truth
+        dataset, psnr_records, gt = load_psnr_gt(loss_file=sub_loss_file)
+        if dataset=='shanghaitech':
+            gt[51][5]=0
+        elif dataset=='ped2':
+            for i in range(7,11):
+                gt[i][0]=0
+        elif dataset=='ped1':
+            gt[13][0]=0
+        # the number of videos
+        num_videos = len(psnr_records)
+
+        scores = np.array([], dtype=np.float32)
+        labels = np.array([], dtype=np.int8)
+        # video normalization
+        auc=0
+        for i in range(num_videos):
+            distance = psnr_records[i]
+
+            if NORMALIZE:
+                distance=(distance-distance.min())/(distance.max()-distance.min()+1e-8)
+
+                # distance -= distance.min()  # distances = (distance - min) / (max - min)
+                # distance /= distance.max()
+                # for the score is anomaly score
+                if reverse:
+                    distance = 1 - distance
+            # to smooth the score
+            if smoothing:
+                distance = score_smoothing(distance)
+            # scores = np.concatenate((scores[:], distance[DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
+            # labels = np.concatenate((labels[:], gt[i][DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
+
+            #_auc = metrics.roc_auc_score(np.array(gt[i],dtype=np.int8),np.array(distance,dtype=np.float32))
+            #_auc = metrics.auc(fpr, tpr)
+            fpr, tpr, thresholds = metrics.roc_curve(np.array(gt[i],dtype=np.int8), np.array(distance,dtype=np.float32), pos_label=0)
+            _auc = metrics.auc(fpr, tpr)
+            print('video {}: auc is {}'.format(i+1,_auc))
+            auc+=_auc
+        auc/=num_videos
+        print(auc)
+        #results = RecordResult(fpr, tpr, auc, dataset, sub_loss_file)
+
+        # if optimal_results < results:
+        #     optimal_results = results
+        #
+        # if os.path.isdir(loss_file):
+        #     print(results)
+    # print('##### optimal result and model AUC= {}'.format(optimal_results))
+    # return optimal_results
+
+
+def average_psnr(loss_file,reverse):
     if not os.path.isdir(loss_file):
         loss_file_list = [loss_file]
     else:
@@ -452,8 +518,8 @@ def average_psnr(loss_file):
     print('max average psnr file Averge Score = {}, psnr = {}'.format(max_file, max_avg_psnr))
 
 
-def calculate_psnr(loss_file):
-    optical_result = compute_auc(loss_file)
+def calculate_psnr(loss_file,reverse,smoothing):
+    optical_result = compute_auc(loss_file,reverse,smoothing)
     print('##### optimal result and model = {}'.format(optical_result))
 
     mean_psnr = []
@@ -476,11 +542,11 @@ def calculate_psnr(loss_file):
     print('max mean psnr = {}'.format(np.max(mean_psnr)))
 
 
-def calculate_score(loss_file):
+def calculate_score(loss_file,reverse,smoothing):
     if not os.path.isdir(loss_file):
         loss_file_path = loss_file
     else:
-        optical_result = compute_auc(loss_file)
+        optical_result = compute_auc(loss_file,reverse,smoothing)
         loss_file_path = optical_result.loss_file
         print('##### optimal result and model = {}'.format(optical_result))
     dataset, psnr_records, gt = load_psnr_gt(loss_file=loss_file_path)
@@ -495,10 +561,12 @@ def calculate_score(loss_file):
         distance = psnr_records[i]
 
         distance = (distance - distance.min()) / (distance.max() - distance.min())
-        distance=1-distance
-        temp=score_smoothing(distance)
-        scores = np.concatenate((scores, temp), axis=0)
-        labels = np.concatenate((labels, gt[i]), axis=0)
+        if reverse:
+            distance=1-distance
+        if smoothing:
+            distance = score_smoothing(distance)
+        scores = np.concatenate((scores[:], distance[DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
+        labels = np.concatenate((labels[:], gt[i][DECIDABLE_IDX:-DECIDABLE_IDX]), axis=0)
 
     mean_normal_scores = np.mean(scores[labels == 0])
     mean_abnormal_scores = np.mean(scores[labels == 1])
@@ -556,16 +624,22 @@ def evaluate(eval_type, save_file):
     optimal_results = eval_func(save_file)
     return optimal_results
 
-def evaluate_all(path):
-    result=compute_auc(path)
-    average_psnr(path)
-    calculate_score(path)
-    compute_eer(path)
-    precision_recall_auc(path)
+def evaluate_all(path,reverse=True,smoothing=True):
+    result=compute_auc(path,reverse,smoothing)
+    average_psnr(path,reverse)
+    calculate_score(path,reverse,smoothing)
+    compute_eer(path,reverse,smoothing)
+    precision_recall_auc(path,reverse,smoothing)
+    compute_auc_average(path,reverse,smoothing)
     return result
 
 if __name__ == '__main__':
-    evaluate_all('/home/manning/autor_results/Ionescu_et_al_CVPR_2019_Avenue_results.pkl')
-    print('\n')
-    evaluate_all('/home/manning/autor_results/Ionescu_et_al_CVPR_2019_ShanghaiTech_results.pkl')
-    #evaluate_all('/home/manning/anomaly_scores/ped1.pkl')
+    # compute_auc_average('/home/manning/autor_results/Ionescu_et_al_CVPR_2019_Avenue_results.pkl',reverse=True,smoothing=False)
+    #print('\n')
+    #compute_auc_average('/home/manning/autor_results/Ionescu_et_al_CVPR_2019_ShanghaiTech_results.pkl')
+    # compute_auc_average('/home/manning/anomaly_scores/shanghaitech_frame_l2_diff.pkl',reverse=True,smoothing=False)
+    evaluate_all('/home/manning/anomaly_scores/ped1.pkl')
+    # gt_loader = GroundTruthLoader()
+    # gt = gt_loader(dataset='shanghaitech')
+    # print('gt[51]',gt[51])
+    # print('gt[17]',gt[17])
