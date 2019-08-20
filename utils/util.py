@@ -3,8 +3,9 @@ import cv2
 from PIL import Image
 import os.path as osp
 import os
-import tensorflow as tf
+# import tensorflow as tf
 from scipy.signal import savgol_filter
+from sklearn.neighbors import KernelDensity
 
 image_size_map={
     'avenue':(360,640),
@@ -85,13 +86,13 @@ def split_path_boxes(prefix,path_box_list,dataset_name,img_height,img_width):
                       int(img_height*(float(item[3])-float(item[1]))),int(img_width*(float(item[4])-float(item[2])))])
     return paths_former,paths_gray,paths_back,boxes
 
-def _crop_img(path,box,target_size):
-    file_content=tf.read_file(path)
-    jpg=tf.image.decode_and_crop_jpeg(file_content,crop_window=box,channels=3)
-    jpg=tf.image.resize_images(jpg,size=(target_size,target_size))
-    jpg=tf.image.rgb_to_grayscale(jpg)
-    jpg=tf.cast(jpg,dtype=tf.float32)
-    return jpg
+# def _crop_img(path,box,target_size):
+#     file_content=tf.read_file(path)
+#     jpg=tf.image.decode_and_crop_jpeg(file_content,crop_window=box,channels=3)
+#     jpg=tf.image.resize_images(jpg,size=(target_size,target_size))
+#     jpg=tf.image.rgb_to_grayscale(jpg)
+#     jpg=tf.cast(jpg,dtype=tf.float32)
+#     return jpg
 
 def Conv_AE_dataset(image_folder,gray=True,target_size=227):
     vids=get_vids_paths(image_folder)
@@ -100,9 +101,9 @@ def Conv_AE_dataset(image_folder,gray=True,target_size=227):
         _temp_frames=[]
         for frame_path in vid:
             if gray:
-                _temp_frames.append(cv2.resize(cv2.imread(frame_path,0),(target_size,target_size)))
+                _temp_frames.append(cv2.resize(cv2.imread(frame_path,0),(target_size,target_size)).astype(np.float32))
             else:
-                _temp_frames.append(cv2.resize(cv2.imread(frame_path)[...,::-1],(target_size,target_size)))
+                _temp_frames.append(cv2.resize(cv2.imread(frame_path)[...,::-1],(target_size,target_size)).astype(np.float32))
         frames.append(_temp_frames)
     return frames
 
@@ -122,9 +123,39 @@ def CAE_dataset_feed_dict(prefix,np_path_box,dataset_name):
 
     return f_imgs,g_imgs,b_imgs
 
-def score_smoothing(score):
-    # score_len=score.shape[0]//5
-    # if score_len%2==0:
-    #     score_len+=1
-    # score=savgol_filter(score,score_len,3)
-    return score
+# def score_smoothing(score):
+#     score_len=score.shape[0]//9
+#     if score_len%2==0:
+#         score_len+=1
+#     score=savgol_filter(score,score_len,3)
+#
+#     return score
+#
+def score_smoothing(score,sigma=10):
+    # r = score.shape[0] //39
+    # if r%2==0:
+    #     r+=1
+    r=11
+    gaussian_temp=np.ones(r*2-1)
+    for i in range(r*2-1):
+        gaussian_temp[i]=np.exp(-(i-r)**2/(2*sigma**2))/(sigma*np.sqrt(2*np.pi))
+    new_score=score
+    for i in range(r,score.shape[0]-r):
+        new_score[i]=np.dot(score[i-r:i+r-1],gaussian_temp)
+    return new_score
+
+def _log10(a):
+    numerator=np.log(a)
+    denominator=np.log(10)
+    return numerator/denominator
+
+def cal_psnr(img_pred,img_gt):
+    # the img is [0,1]
+    shape=img_pred.shape
+    num_pixels=float(shape[0]*shape[1]*shape[2])
+    square_diff=np.square(img_pred-img_gt+1e-8)
+    psnr=10*_log10(1/((1/num_pixels)*np.sum(square_diff)))
+    return psnr
+
+def l2_err(img_pred,img_gt):
+    return np.mean(np.square(img_pred-img_gt+1e-8))
