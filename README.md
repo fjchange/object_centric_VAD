@@ -12,7 +12,7 @@ __Recently, I haven't got the results as awesome as the paper mentioned .__(mayb
 > cyvlfeat (install by anaconda recommended)
 
 
-## Difference between the Author' Workr 
+## Difference between the Author' Work
 Considering the author finish the work on Matlab with Vlfeat, there is no complete python version of version available now.
 So I
 - Replace VlFeat's SVM with Sklearn's  OneVsRestClassifier with SGDClassifier as basic estimizer. ( As the author said, SDCA optimizer and hinge loss work well, but there is no SDCA optimizer in sklearn.)
