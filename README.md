@@ -49,11 +49,12 @@ The framework include Three Parts:
  ## Training
  Training process includes 3 steps:
  1. extract the boxes of the dataset
- 
+ > python inference.py --gpu GPU --dataset avenue 
  2. train the CAEs
- 
+ > python train.py --gpu GPU --dataset avenue --train CAE
  3. clustering and train the SVMs
- 
+  > python train.py --gpu GPU --dataset avenue --train SVM
+
  ## Testing
  > python test.py --gpu GPU --dataset avenue --model_path YOUR_CAE_MODEL_PATH
  
