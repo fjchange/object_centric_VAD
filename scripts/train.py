@@ -39,7 +39,7 @@ def arg_parse():
     parser=argparse.ArgumentParser()
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
-    parser.add_argument('-m','--machine',type=str,help='Which machine is using?')
+    parser.add_argument('-t','--train',type=str,help='Train on which dataset')
     parser.add_argument('-b','--bn',type=bool,default=False,help='whether to use BN layer')
     args=parser.parse_args()
     return args
@@ -214,7 +214,9 @@ if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
     # train CAE first than, train SVM
-    train_CAE('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',args)
-    #train_one_vs_rest_SVM('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',model_save_path_pre+args.dataset,10,args)
+    if args.train=='CAE':
+        train_CAE('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',args)
+    else:
+        train_one_vs_rest_SVM('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',model_save_path_pre+args.dataset,10,args)
 
 
