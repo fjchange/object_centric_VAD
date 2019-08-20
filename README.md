@@ -10,6 +10,8 @@ __Recently, I haven't got the results as awesome as the paper mentioned .__(mayb
 > scikit-learn
 >
 > cyvlfeat (install by anaconda recommended)
+>
+> protoc  (you should cd the project dir and them "protoc ./object_detection/protos/string_int_label_map.proto --python_out=." before you train/test)
 
 
 ## Difference between the Author' Work
