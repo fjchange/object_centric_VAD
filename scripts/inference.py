@@ -9,32 +9,35 @@ from object_detection.utils import visualization_utils as vis_util
 import matplotlib.pyplot as plt
 import argparse
 
-MODEL_NAME='/home/jiachang/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
+# MODEL_NAME='/home/jiachang/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
 
-prefix='/data/jiachang/'
-if not os.path.exists(prefix):
-    prefix='/data0/jiachang/'
-    if not os.path.exists(prefix):
-        prefix='/home/manning/'
-        MODEL_NAME='/home/manning/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
+# prefix='/data/jiachang/'
+# if not os.path.exists(prefix):
+#     prefix='/data0/jiachang/'
+#     if not os.path.exists(prefix):
+#         prefix='/home/manning/'
+#         MODEL_NAME='/home/manning/ssd_resnet50_v1_fpn_shared_box_predictor_640x640_coco14_sync_2018_07_03'
 
 
-PATH_TO_FROZEN_GRAPH=MODEL_NAME+'/frozen_inference_graph.pb'
-PATH_TO_CKPT=MODEL_NAME+'/'
+# PATH_TO_FROZEN_GRAPH=MODEL_NAME+'/frozen_inference_graph.pb'
+# PATH_TO_CKPT=MODEL_NAME+'/'
 PATH_TO_LABELS='../object_detection/data/mscoco_label_map.pbtxt'
 
 def arg_parse():
     parser=argparse.ArgumentParser()
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
+    parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
+    parser.add_argument('--forzen_graph',type=str,help='The path of object detection,frozen graph is used')
+    parser.add_argument('--box_imgs_npy_path',type=str,help='Path for npy file that store the \(box,img_path\)') 
     args=parser.parse_args()
     return args
 
-def load_frozen_graph():
+def load_frozen_graph(graph_path):
     detection_graph=tf.Graph()
     with detection_graph.as_default():
         od_graph_def=tf.GraphDef()
-        with tf.gfile.GFile(PATH_TO_FROZEN_GRAPH,'rb')as fid:
+        with tf.gfile.GFile(graph_path,'rb')as fid:
             serialized_graph=fid.read()
             od_graph_def.ParseFromString(serialized_graph)
             tf.import_graph_def(od_graph_def,name='')
@@ -157,10 +160,9 @@ def run_inference_get_feature(graph,image_folder):
 if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
-    np_paths_boxes_path = '/home/'+args.machine+'/'+args.dataset+'_'+'img_path_box.npy'
-    image_dataset_path=prefix+args.dataset+'/training/frames/'
+    np_paths_boxes_path = args.box_imgs_npy_path
     # print(image_dataset_path)
-    graph=load_frozen_graph()
-    frame_lists=util.get_frames_paths(image_dataset_path,gap=2)
+    graph=load_frozen_graph(args.graph_path)
+    frame_lists=util.get_frames_paths(args.dataset_folder,gap=2)
     # vis_detection_result(graph,frame_lists[20],'/home/'+args.machine+'/vis_result.jpg')
     run_inference_for_images_per_image(graph,image_dataset_path,np_paths_boxes_path,0.5)
