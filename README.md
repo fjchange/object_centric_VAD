@@ -2,7 +2,7 @@
 An Tensorflow Implement of CVPR 2019 "Object-centric Auto-Encoders and Dummy Anomalies for Abnormal Event Detection in Video"
 [Paper Link](http://openaccess.thecvf.com/content_CVPR_2019/papers/Ionescu_Object-Centric_Auto-Encoders_and_Dummy_Anomalies_for_Abnormal_Event_Detection_in_CVPR_2019_paper.pdf)
 
-Recently, I haven't got the results as well as the paper mentioned.
+__Recently, I haven't got the results as well as the paper mentioned.__
 
 ## Requirements
 > tensorflow >=1.5.0 ( I use tensorflow 1.10.0 )
@@ -24,6 +24,13 @@ You can also
 ## About Score Calculation and Score Smoothing
 1. __The method of AUC calculation may leads to unfair comparison__
 Author calculate the AUC by calculate all the video's AUC first, and then calculate the mean of them as the AUC of the dataset (which is in utils/evaluate.py compute_auc_averate). The evaluate.py is borrowed from StevenLiuWen/ano_pred_cvpr2018, which concat all the videos first, and then calculate the AUC as the dataset's AUC.
+|----|----|----|
+| AUC type | As the author | As Liu et.al |
+|----|----|----|
+|Avenue| 90.4% | 86.56% |
+|----|----|----|
+|ShanghaiTech|84.9%|78.5645%|
+|----|----|----|
 
 2. __Score Smoothing influence the Result Output__
 There two parameters in score_smoothing (which is utils/util.py), the parameters can influence the final result.
