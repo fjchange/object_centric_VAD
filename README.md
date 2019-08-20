@@ -5,13 +5,13 @@ An Tensorflow Implement of CVPR 2019 "Object-centric Auto-Encoders and Dummy Ano
 __Recently, I haven't got the results as awesome as the paper mentioned .__(maybe any porblem in the code, I will be appreciated that if you point it out!)
 
 ## Requirements
-> tensorflow >=1.5.0 ( I use tensorflow 1.10.0 )
+> __tensorflow__ >=1.5.0 ( I use tensorflow 1.10.0 )
 >
-> scikit-learn
+> __scikit-learn__
 >
-> cyvlfeat (install by anaconda recommended)
+> __cyvlfeat__ ("conda install -c menpo cyvlfeat" recommended)
 >
-> protoc  (you should cd the project dir and them "protoc ./object_detection/protos/string_int_label_map.proto --python_out=." before you train/test)
+> __protoc__  (you should cd the project dir and them "protoc ./object_detection/protos/string_int_label_map.proto --python_out=." before you train/test)
 
 
 ## Difference between the Author' Work
