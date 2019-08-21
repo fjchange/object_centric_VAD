@@ -186,7 +186,7 @@ def extract_features(path_boxes_np,CAE_model_path,args):
             if args.norm==0:
                 _temp=result[0]
             else:
-                _temp=util.norm_(result[0],l=args.norm)
+                _temp=util.norm_(result[0],l=args.norm)[0]
 
             if args.class_add:
                 c_onehot_embedding=np.zeros(90,dtype=np.float32)
