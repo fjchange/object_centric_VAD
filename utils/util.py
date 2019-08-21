@@ -56,6 +56,7 @@ def split_path_boxes(prefix,path_box_list,dataset_name,img_height,img_width):
     paths_back=[]
 
     boxes=[]
+    class_indexes=[]
 
     for item in path_box_list:
         #paths_gray.append(item[0])
@@ -84,7 +85,9 @@ def split_path_boxes(prefix,path_box_list,dataset_name,img_height,img_width):
 
         boxes.append([int(float(item[1])*img_height),int(float(item[2])*img_width),
                       int(img_height*(float(item[3])-float(item[1]))),int(img_width*(float(item[4])-float(item[2])))])
-    return paths_former,paths_gray,paths_back,boxes
+        if len(item)==6:
+            class_indexes.append(int(item[-1]))
+    return paths_former,paths_gray,paths_back,boxes,class_indexes
 
 # def _crop_img(path,box,target_size):
 #     file_content=tf.read_file(path)
@@ -111,7 +114,7 @@ def Conv_AE_dataset(image_folder,gray=True,target_size=227):
 def CAE_dataset_feed_dict(prefix,np_path_box,dataset_name):
     path_box_list=np.load(np_path_box)
     (image_height, image_width) = image_size_map[dataset_name]
-    former_paths,gray_paths,back_paths,boxes=split_path_boxes(prefix,path_box_list,dataset_name,image_height,image_width)
+    former_paths,gray_paths,back_paths,boxes,class_indexes=split_path_boxes(prefix,path_box_list,dataset_name,image_height,image_width)
 
     f_imgs=[]
     g_imgs=[]
@@ -121,7 +124,7 @@ def CAE_dataset_feed_dict(prefix,np_path_box,dataset_name):
         g_imgs.append(box_image_crop(g_path,box))
         b_imgs.append(box_image_crop(b_path,box))
 
-    return f_imgs,g_imgs,b_imgs
+    return f_imgs,g_imgs,b_imgs,class_indexes
 
 # def score_smoothing(score):
 #     score_len=score.shape[0]//9
@@ -135,11 +138,11 @@ def score_smoothing(score,sigma=30):
     # r = score.shape[0] //39
     # if r%2==0:
     #     r+=1
-    r=125
-    if r>score.shape[0]//2:
-        r=score.shape[0]//2-1
-    if r%2==0:
-        r+=1
+    r = 125
+    if r > score.shape[0] // 2:
+        r = score.shape[0] // 2 - 1
+    if r % 2 == 0:
+        r += 1
     gaussian_temp=np.ones(r*2-1)
     for i in range(r*2-1):
         gaussian_temp[i]=np.exp(-(i-r)**2/(2*sigma**2))/(sigma*np.sqrt(2*np.pi))
@@ -169,3 +172,4 @@ def norm_(feat,l=1):
     feat=feat-feat.min()
     feat=feat/feat.max()
     return feat
+
