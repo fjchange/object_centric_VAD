@@ -43,6 +43,8 @@ def arg_parse():
     parser.add_argument('-b','--bn',type=bool,default=False,help='whether to use BN layer')
     parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
     parser.add_argument('--model_dir',type=str,help='Folder to save tensorflow CAE model')
+    parser.add_argument('-c','--class_add',type=bool,default=False,help='Whether to add class one-hot embedding to the featrue')
+    parser.add_argument('-n','--norm',type=int,default=0,help='Whether to use Normalization to the Feature and the normalization level')
     parser.add_argument('--box_imgs_npy_path',type=str,help='Path for npy file that store the \(box,img_path\)')
     args=parser.parse_args()
     return args
@@ -179,7 +181,19 @@ def extract_features(path_boxes_np,CAE_model_path,args):
             feed_dict={former_batch:np.expand_dims(f_imgs[i],0),
                        gray_batch:np.expand_dims(g_imgs[i],0),
                        back_batch:np.expand_dims(b_imgs[i],0)}
-            data.append(sess.run(feat,feed_dict=feed_dict)[0])
+            result=sess.run(feat,feed_dict=feed_dict)
+
+            if args.norm==0:
+                _temp=result[0]
+            else:
+                _temp=util.norm_(result[0],l=args.norm)
+
+            if args.class_add:
+                c_onehot_embedding=np.zeros(90,dtype=np.float32)
+                c_onehot_embedding[class_indexes[i]-1]=1
+                _temp=np.concatenate((_temp,c_onehot_embedding),axis=0)
+                
+            data.append(_temp)
         data=np.array(data)
         sess.close()
 
