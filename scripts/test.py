@@ -25,22 +25,24 @@ def arg_parse():
     parser.add_argument('-d', '--dataset', type=str, help='Train on which dataset')
     parser.add_argument('-b','--bn',type=bool,default=False,help='whether to use BN layer')
     parser.add_argument('--model_path',type=str,help='Path to saved tensorflow CAE model')
+    parser.add_argument('--graph_path',type=str,help='Path to saved object detection frozen graph model')
     parser.add_argument('--svm_model',type=str,help='Path to saved svm model')
     parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
-
+    parser.add_argument('-c','--class_add',type=bool,default=False,help='Whether to add class one-hot embedding to the featrue')
+    parser.add_argument('-n','--norm',type=int,default=0,help='Whether to use Normalization to the Feature and the normalization level')
     args = parser.parse_args()
     return args
 
 
 def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
     # to get the image paths
-    image_folder = prefix + args.dataset + '/testing/frames/'
+    image_folder =args.dataset_folder
     vids_paths = util.get_vids_paths(image_folder)
     # to set gpu visible
     os.environ['CUDA_VISIBLE_DEVICES'] = args.gpu
     import tensorflow as tf
     # to load the ssd fpn model, and get related tensor
-    object_detection_graph = inference.load_frozen_graph()
+    object_detection_graph = inference.load_frozen_graph(args.graph_path)
     with object_detection_graph.as_default():
         ops = object_detection_graph.get_operations()
         all_tensor_names = {output.name for op in ops for output in op.outputs}
@@ -110,13 +112,13 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
 
                     # all outputs are float32 numpy arrays, so convert types as appropriate
                     output_dict['num_detections'] = int(output_dict['num_detections'][0])
-                    # output_dict['detection_classes'] = output_dict[
-                    #     'detection_classes'][0].astype(np.int64)
+                    output_dict['detection_classes'] = output_dict[
+                        'detection_classes'][0].astype(np.int8)
                     output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
                     output_dict['detection_scores'] = output_dict['detection_scores'][0]
 
                     _temp_anomaly_scores = []
-                    _temp_anomaly_score = 100.
+                    _temp_anomaly_score = 0.
 
                     for score, box in zip(output_dict['detection_scores'], output_dict['detection_boxes']):
                         if score >= score_threshold:
@@ -129,6 +131,12 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
                             _feat = sess.run(feat, feed_dict={former_batch: np.expand_dims(img_former, 0),
                                                               gray_batch: np.expand_dims(img_gray, 0),
                                                               back_batch: np.expand_dims(img_back, 0)})
+                            if args.norm!=0:
+                                _feat=util.norm_(_feat,l=args.norm)
+                            if args.class_add:
+                                _temp=np.zeros(90,dtype=np.float32)
+                                _temp[output_dict['detection_classes'][0][0]-1]=1
+                                _feat[0]=np.concatenate((_feat[0],_temp),axis=0)
                             scores = clf.decision_function(_feat)
                             _temp_anomaly_scores.append(-max(scores[0]))
                     if _temp_anomaly_scores.__len__() != 0:
@@ -142,10 +150,10 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
                 anomaly_scores[:gap] = anomaly_scores[gap]
                 anomaly_scores[-gap:] = anomaly_scores[-gap-1]
 
-                min_score=min(anomaly_scores)
-                for i,_s in enumerate(anomaly_scores):
-                    if _s==100.:
-                        anomaly_scores[i]=min_score
+#                 min_score=min(anomaly_scores)
+#                 for i,_s in enumerate(anomaly_scores):
+#                     if _s==100.:
+#                         anomaly_scores[i]=min_score
                 anomaly_scores_records.append(anomaly_scores)
                 total += len(frame_paths)
 
