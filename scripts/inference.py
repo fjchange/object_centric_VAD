@@ -72,14 +72,14 @@ def run_inference_for_images_per_image(graph,image_folder,np_boxes_path,score_th
 
                 # all outputs are float32 numpy arrays, so convert types as appropriate
                 output_dict['num_detections'] = int(output_dict['num_detections'][0])
-                # output_dict['detection_classes'] = output_dict[
-                #     'detection_classes'][0].astype(np.int64)
+                output_dict['detection_classes'] = output_dict[
+                    'detection_classes'][0].astype(np.int8)
                 output_dict['detection_boxes'] = output_dict['detection_boxes'][0]
                 output_dict['detection_scores'] = output_dict['detection_scores'][0]
-
-                for score,box in zip(output_dict['detection_scores'],output_dict['detection_boxes']):
+                # print(output_dict)
+                for score,box,_class in zip(output_dict['detection_scores'],output_dict['detection_boxes'],output_dict['detection_classes']):
                     if score>=score_threshold:
-                        path_box_lists.append([frame_path,box[0],box[1],box[2],box[3]])
+                        path_box_lists.append([frame_path,box[0],box[1],box[2],box[3],_class])
                 print(i)
 
             sess.close()
@@ -135,27 +135,6 @@ def vis_detection_result(graph,image_path,output_image_path):
 
             sess.close()
 
-
-def run_inference_get_feature(graph,image_folder):
-    frame_lists=util.get_frames_paths(image_folder,gap=2)
-
-    with graph.as_default():
-        ops=tf.get_default_graph().get_operations()
-        all_tensor_names={output.name for op in ops for output in op.outputs}
-        tensor_dict={}
-        for key in [
-            'num_detections','detection_boxes','detection_scores',
-            'detection_classes','detection_masks'
-        ]:
-            tensor_name=key+':0'
-            if tensor_name in all_tensor_names:
-                tensor_dict[key]=tf.get_default_graph().get_tensor_by_name(tensor_name)
-
-        image_tensor=tf.get_default_graph().get_tensor_by_name('image_tensor:0')
-
-    #     with tf.Session() as sess:
-    #
-    # pass
 
 if __name__=='__main__':
     args=arg_parse()
