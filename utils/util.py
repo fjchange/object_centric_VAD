@@ -6,6 +6,7 @@ import os
 # import tensorflow as tf
 from scipy.signal import savgol_filter
 from sklearn.neighbors import KernelDensity
+from sklearn.preprocessing import normalize
 
 image_size_map={
     'avenue':(360,640),
@@ -168,8 +169,6 @@ def l2_err(img_pred,img_gt):
     return np.mean(np.square(img_pred-img_gt+1e-8))
 
 def norm_(feat,l=1):
-    feat=np.power(feat,l)
-    feat=feat-feat.min()
-    feat=feat/feat.max()
-    return feat
+    return normalize(feat,l)
+
 
