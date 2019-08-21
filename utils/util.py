@@ -131,11 +131,15 @@ def CAE_dataset_feed_dict(prefix,np_path_box,dataset_name):
 #
 #     return score
 #
-def score_smoothing(score,sigma=10):
+def score_smoothing(score,sigma=30):
     # r = score.shape[0] //39
     # if r%2==0:
     #     r+=1
-    r=11
+    r=125
+    if r>score.shape[0]//2:
+        r=score.shape[0]//2-1
+    if r%2==0:
+        r+=1
     gaussian_temp=np.ones(r*2-1)
     for i in range(r*2-1):
         gaussian_temp[i]=np.exp(-(i-r)**2/(2*sigma**2))/(sigma*np.sqrt(2*np.pi))
