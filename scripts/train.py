@@ -17,18 +17,18 @@ from sklearn.multiclass import OneVsRestClassifier
 from cyvlfeat.kmeans import kmeans,kmeans_quantize
 
 
-summary_save_path_pre='/home/jiachang/summary/CAE_'
-svm_save_path_pre='/home/jiachang/clfs/'
+summary_save_path_pre=YOUR_PATH_TO_STORE_SUMMARY#'/home/jiachang/summary/CAE_'
+svm_save_dir=YOUR_PATH_TO_STORE_SVM_MODEL#'/home/jiachang/clfs/'
 
-prefix='/data/jiachang/'
-if not os.path.exists(prefix):
-    prefix='/data0/jiachang/'
-    if not os.path.exists(prefix):
-        prefix='/home/manning/'
-        summary_save_path_pre = '/home/manning/summary/CAE_'
-        svm_save_path_pre = '/home/manning/clfs/'
+# prefix='/data/jiachang/'
+# if not os.path.exists(prefix):
+#     prefix='/data0/jiachang/'
+#     if not os.path.exists(prefix):
+#         prefix='/home/manning/'
+#         summary_save_path_pre = '/home/manning/summary/CAE_'
+#         svm_save_path_pre = '/home/manning/clfs/'
 
-model_save_path_pre=prefix+'tf_models/CAE_'
+model_save_path_pre='CAE_'
 
 batch_size=64
 learning_rate=[1e-3,1e-4]
@@ -41,6 +41,9 @@ def arg_parse():
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
     parser.add_argument('-t','--train',type=str,help='Train on which dataset')
     parser.add_argument('-b','--bn',type=bool,default=False,help='whether to use BN layer')
+    parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
+    parser.add_argument('--model_dir',type=str,help='Folder to save tensorflow CAE model')
+    parser.add_argument('--box_imgs_npy_path',type=str,help='Path for npy file that store the \(box,img_path\)')
     args=parser.parse_args()
     return args
 
@@ -206,7 +209,7 @@ def train_one_vs_rest_SVM(path_boxes_np,CAE_model_path,K,args):
 
     #clf=svm.LinearSVC(C=1.0,multi_class='ovr',max_iter=len(labels)*5,loss='hinge',)
     ovr_classifer.fit(data,sparse_labels)
-    joblib.dump(ovr_classifer,svm_save_path_pre+args.dataset+'.m')
+    joblib.dump(ovr_classifer,svm_save_dir+args.dataset+'.m')
     print('train finished!')
 
 
@@ -215,8 +218,8 @@ if __name__=='__main__':
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
     # train CAE first than, train SVM
     if args.train=='CAE':
-        train_CAE('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',args)
+        train_CAE(args.box_imgs_npy_path,args)
     else:
-        train_one_vs_rest_SVM('/home/'+args.machine+'/'+args.dataset+'_img_path_box.npy',model_save_path_pre+args.dataset,10,args)
+        train_one_vs_rest_SVM(args.box_imgs_npy_path,os.path.join(args.model_dir,model_save_path_pre+args.dataset),10,args)
 
 
