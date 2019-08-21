@@ -13,17 +13,21 @@ import pickle
 import time
 from utils import evaluate
 
-prefix = '/data/jiachang/'
-if not os.path.exists(prefix):
-    prefix = '/data0/jiachang/'
-    if not os.path.exists(prefix):
-        prefix='/home/manning/'
+# prefix = '/data/jiachang/'
+# if not os.path.exists(prefix):
+#     prefix = '/data0/jiachang/'
+#     if not os.path.exists(prefix):
+#         prefix='/home/manning/'
 
 def arg_parse():
     parser = argparse.ArgumentParser()
     parser.add_argument('-g', '--gpu', type=str, default='0', help='Use which gpu?')
     parser.add_argument('-d', '--dataset', type=str, help='Train on which dataset')
     parser.add_argument('-b','--bn',type=bool,default=False,help='whether to use BN layer')
+    parser.add_argument('--model_path',type=str,help='Path to saved tensorflow CAE model')
+    parser.add_argument('--svm_model',type=str,help='Path to saved svm model')
+    parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
+
     args = parser.parse_args()
     return args
 
@@ -166,4 +170,4 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
 
 if __name__=='__main__':
     args=arg_parse()
-    test(prefix+'tf_models/CAE_'+args.dataset,'/home/'+args.machine+'/clfs/'+args.dataset+'.m',args,score_threshold=0.4)
+    test(args.model_path,args.svm_path,args,score_threshold=0.4)
