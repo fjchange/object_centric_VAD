@@ -57,14 +57,14 @@ The framework include Three Parts:
  ## Training
  Training process includes 3 steps:
  1. extract the boxes of the dataset
- > python inference.py --gpu GPU --dataset avenue 
+ > python inference.py --gpu GPU --dataset avenue --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER --frozen_graph YOUR_PATH_TO_OBJECT_DETECTION_MODEL_FROZEN_GRAPH --box_imgs_npy_path PATH_TO_STORE_FILE
  2. train the CAEs
- > python train.py --gpu GPU --dataset avenue --train CAE
+ > python train.py --gpu GPU --dataset avenue --train CAE --box_imgs_npy_path PATH_TO_STORE_FILE --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER
  3. clustering and train the SVMs
-  > python train.py --gpu GPU --dataset avenue --train SVM
+  > python train.py --gpu GPU --dataset avenue --train SVM -box_imgs_npy_path PATH_TO_STORE_FILE --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER
 
  ## Testing
- > python test.py --gpu GPU --dataset avenue --model_path YOUR_CAE_MODEL_PATH
+ > python test.py --gpu GPU --dataset avenue --model_path YOUR_CAE_MODEL_PATH --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER --svm_model YOUR_PATH_TO_SVM_MODEL
  
  ## Reference
  1. Tensorflow Object Detection API
