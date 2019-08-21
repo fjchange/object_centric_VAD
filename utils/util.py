@@ -163,3 +163,9 @@ def cal_psnr(img_pred,img_gt):
 
 def l2_err(img_pred,img_gt):
     return np.mean(np.square(img_pred-img_gt+1e-8))
+
+def norm_(feat,l=1):
+    feat=np.power(feat,l)
+    feat=feat-feat.min()
+    feat=feat/feat.max()
+    return feat
