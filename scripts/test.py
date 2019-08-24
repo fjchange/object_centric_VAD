@@ -135,8 +135,9 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
                                 _feat=util.norm_(_feat,l=args.norm)
                             if args.class_add:
                                 _temp=np.zeros(90,dtype=np.float32)
-                                _temp[output_dict['detection_classes'][0][0]-1]=1
-                                _feat[0]=np.concatenate((_feat[0],_temp),axis=0)
+                                _temp[output_dict['detection_classes'][0]-1]=1
+                                result=np.concatenate((_feat[0],_temp),axis=0)
+                                _feat=np.expand_dims(result,0)
                             scores = clf.decision_function(_feat)
                             _temp_anomaly_scores.append(-max(scores[0]))
                     if _temp_anomaly_scores.__len__() != 0:
@@ -152,7 +153,7 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
 
 #                 min_score=min(anomaly_scores)
 #                 for i,_s in enumerate(anomaly_scores):
-#                     if _s==100.:
+#                     if _s==0.:
 #                         anomaly_scores[i]=min_score
                 anomaly_scores_records.append(anomaly_scores)
                 total += len(frame_paths)
