@@ -61,10 +61,10 @@ The framework include Three Parts:
  2. train the CAEs
  > python train.py --gpu GPU --dataset avenue --train CAE --box_imgs_npy_path PATH_TO_STORE_FILE --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER
  3. clustering and train the SVMs
-  > python train.py --gpu GPU --dataset avenue --train SVM -box_imgs_npy_path PATH_TO_STORE_FILE --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER
+  > python train.py --gpu GPU --dataset avenue --train SVM -box_imgs_npy_path PATH_TO_STORE_FILE --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER --class_add True/False --norm 2/1/0
 
  ## Testing
- > python test.py --gpu GPU --dataset avenue --model_path YOUR_CAE_MODEL_PATH --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER --svm_model YOUR_PATH_TO_SVM_MODEL
+ > python test.py --gpu GPU --dataset avenue --model_path YOUR_CAE_MODEL_PATH --dataset_folder YOUR_PATH_TO_FRAMES_FOLDER --svm_model YOUR_PATH_TO_SVM_MODEL --class_add True/False --norm 2/1/0 --graph_path PATH_TO_FROZEN_GRAPH 
  
  ## Reference
  1. Tensorflow Object Detection API
