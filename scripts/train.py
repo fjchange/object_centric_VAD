@@ -34,12 +34,15 @@ batch_size=64
 learning_rate=[1e-3,1e-4]
 lr_decay_epochs=[100]
 epochs=200
-
+'''
+The Author said that the model may be better when 90-d one-hot embedding, representing the object class in COCO, 
+add to the feature vector, which is can be activated by '--class_add'
+'''
 def arg_parse():
     parser=argparse.ArgumentParser()
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
-    parser.add_argument('-t','--train',type=str,help='Train on which dataset')
+    parser.add_argument('-t','--train',type=str,help='Train on SVM / CAE')
     parser.add_argument('-b','--bn',type=bool,default=False,help='whether to use BN layer')
     parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
     parser.add_argument('--model_dir',type=str,help='Folder to save tensorflow CAE model')
@@ -217,7 +220,7 @@ def train_one_vs_rest_SVM(path_boxes_np,CAE_model_path,K,args):
     #     nums[item]+=1
     # print(nums)
     print('clustering finished!')
-    # One-Verse-Rest SVM: to train OVC-SVM for
+    # SGDC classifier with onevsrest classifier to replace the ovc-svm with hinge loss and SDCA optimizer in the paper
     base_estimizer=SGDClassifier(max_iter=10000,warm_start=True,loss='hinge',early_stopping=True,n_iter_no_change=50,l1_ratio=0)
     ovr_classifer=OneVsRestClassifier(base_estimizer)
 
