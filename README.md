@@ -12,6 +12,12 @@ __Recently, I haven't got the results as awesome as the paper mentioned .__(mayb
 > __cyvlfeat__ ("conda install -c menpo cyvlfeat" recommended)
 >
 > __protoc__  (you should cd the project dir and them "protoc ./object_detection/protos/string_int_label_map.proto --python_out=." before you train/test)
+>
+> __cffi__ (if you want to use cffi to link the dynamic library
+>
+>__matlab__ (If you want to use matlab engie. I am using matalb r2018b)
+>
+>__vlfeat__ (If you want to use cffi/matlab, you should download(install) it before.)
 
 
 ## Difference between the Author' Work
@@ -22,6 +28,7 @@ So I
 You can also 
 - To use C verision Dynamic Libray of Vlfeat by cffi / cython
 - To use tesnorflow to realize the SVM (TF has SDCA optimizer)
+- To use matlab engine to realize it ( The same with the author's, I am trying on it.)
 
 ## About Score Calculation and Score Smoothing
 1. __The method of AUC calculation may leads to unfair comparison__
