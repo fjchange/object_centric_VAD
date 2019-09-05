@@ -284,6 +284,11 @@ def matlab_train_one_vs_rest_SVM(path_boxes_np,CAE_model_path,K,args):
     eng.SVM_train(nargout=0)
     eng.quit()
     #eng.SVM_train()
+    # rename
+    os.rename('../matlab_files/data.mat','../matlab_files/{}_data.mat'.format(args.dataset))
+    os.rename('../matlab_files/labels.mat','../matlab_files/{}_labels.mat'.format(args.dataset))
+    os.rename('../matlab_files/weights.mat','../matlab_files/{}_weights.mat'.format(args.dataset))
+    os.rename('../matlab_files/biases.mat','../matlab_files/{}_biases.mat'.format(args.dataset))
 
     # eng.workspace['X']=data
     # for i in range(K):
