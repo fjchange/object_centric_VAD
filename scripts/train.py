@@ -49,8 +49,17 @@ def arg_parse():
     parser.add_argument('-c','--class_add',type=bool,default=False,help='Whether to add class one-hot embedding to the featrue')
     parser.add_argument('-n','--norm',type=int,default=0,help='Whether to use Normalization to the Feature and the normalization level')
     parser.add_argument('--box_imgs_npy_path',type=str,help='Path for npy file that store the \(box,img_path\)')
+    parser.add_argument('--weight_reg',type=float,default=0,help='weight regularization for training CAE')
+    parser.add_argument('--matlab',type=bool,default=False,help='Whether to use matlab to train SVMs')
     args=parser.parse_args()
     return args
+
+def weiht_regualized_loss(var_list):
+    reg_loss = tf.constant(0, dtype=tf.float32)
+    for var in var_list:
+        if 'weights:0' in var.name:
+            reg_loss += tf.contrib.layers.l2_regularizer(0.5)(var)
+    return reg_loss
 
 def train_CAE(path_boxes_np,args):
     epoch_len=len(np.load(path_boxes_np))
@@ -87,7 +96,11 @@ def train_CAE(path_boxes_np,args):
     gray_vars=tf.get_collection(key=tf.GraphKeys.TRAINABLE_VARIABLES,scope='gray_')
     back_vars=tf.get_collection(key=tf.GraphKeys.TRAINABLE_VARIABLES,scope='back_')
     # print(former_vars)
-
+    if args.weight_reg!=0:
+        former_loss=former_loss+args.weight_reg*weiht_regualized_loss(former_vars)
+        gray_loss=gray_loss+args.weight_reg*weiht_regualized_loss(gray_vars)
+        back_loss=back_loss+args.weight_reg*weiht_regualized_loss(back_vars)
+        
     former_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(former_loss,var_list=former_vars,global_step=global_step)
     gray_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(gray_loss,var_list=gray_vars,global_step=global_step_a)
     back_op=tf.train.AdamOptimizer(learning_rate=lr).minimize(back_loss,var_list=back_vars,global_step=global_step_b)
@@ -229,7 +242,56 @@ def train_one_vs_rest_SVM(path_boxes_np,CAE_model_path,K,args):
     joblib.dump(ovr_classifer,svm_save_dir+args.dataset+'.m')
     print('train finished!')
 
+def matlab_train_one_vs_rest_SVM(path_boxes_np,CAE_model_path,K,args):
+    data=extract_features(path_boxes_np,CAE_model_path,args)
 
+    centers=kmeans(data,num_centers=K,initialization='PLUSPLUS',num_repetitions=10,
+                   max_num_comparisons=100,max_num_iterations=100,algorithm='LLOYD',num_trees=3)
+    labels=kmeans_quantize(data,centers)
+    labels=np.array(labels,dtype=np.int)
+
+    #data=data.astype(np.float64)
+    #data_flatten=data.flatten()
+    data=data.tolist()
+    labels=labels.tolist()
+
+    _labels=[]
+    _w=[]
+    _b=[]
+
+    for i in range(K):
+        _temp=labels
+        for j in range(len(labels)):
+            if _temp[j]==i:
+                _temp[j]=1.
+            else:
+                _temp[j]=-1.
+        _labels.append(_temp)
+
+    import matlab
+    import matlab.engine
+    import scipy.io as io
+
+    # to save data into data.mat
+    io.savemat('../matlab_files/data.mat',{'data':data})
+    # to save _labels into labels.mat,
+    _labels=np.array(_labels,dtype=int)
+    io.savemat('../matlab_files/labels.mat',{'labels':_labels})
+
+    eng=matlab.engine.start_matlab()
+
+    print('use matlab backend to train!')
+    eng.SVM_train(nargout=0)
+    eng.quit()
+    #eng.SVM_train()
+
+    # eng.workspace['X']=data
+    # for i in range(K):
+    #     eng.workspace['Y']=_labels[i]
+    #     (w,b,info)=eng.eval('vl_svmtrain(X,Y,1)')
+
+    # eng=matlab.engine.start_matlab()
+    
 if __name__=='__main__':
     args=arg_parse()
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
@@ -237,6 +299,9 @@ if __name__=='__main__':
     if args.train=='CAE':
         train_CAE(args.box_imgs_npy_path,args)
     else:
-        train_one_vs_rest_SVM(args.box_imgs_npy_path,os.path.join(args.model_dir,model_save_path_pre+args.dataset),10,args)
+        if not args.matlab:
+            train_one_vs_rest_SVM(args.box_imgs_npy_path,os.path.join(args.model_dir,model_save_path_pre+args.dataset),10,args)
+        else:
+            matlab_train_one_vs_rest_SVM(args.box_imgs_npy_path,os.path.join(args.model_dir,model_save_path_pre+args.dataset),10,args)
 
 
