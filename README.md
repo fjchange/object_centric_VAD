@@ -4,7 +4,7 @@ An Tensorflow Implement of CVPR 2019 "Object-centric Auto-Encoders and Dummy Ano
 
 __Recently, I haven't got the results as awesome as the paper mentioned .__(maybe any porblem in the code, I will be appreciated that if you point it out!)
 
-__Now the code should be the same with the author, but I still get the same results.__
+__Now the code should be the same with the author, but I still fail to get the results as the author's.__
 
 ## Requirements
 > __tensorflow__ >=1.5.0 ( I use tensorflow 1.10.0 )
