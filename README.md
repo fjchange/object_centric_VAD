@@ -36,6 +36,8 @@ You can also
 1. __The method of AUC calculation may leads to unfair comparison__
 Author calculate the AUC by calculate all the video's AUC first, and then calculate the mean of them as the AUC of the dataset (which is in utils/evaluate.py compute_auc_averate). The evaluate.py is borrowed from StevenLiuWen/ano_pred_cvpr2018, which concat all the videos first, and then calculate the AUC as the dataset's AUC.
 
+The Score below is calculated by the score files offered by the author.
+
 | AUC type | As the author | As Liu et.al |
 |----|----|----|
 |Avenue| 90.4% | 86.56% |
