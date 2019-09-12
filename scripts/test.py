@@ -64,15 +64,17 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
         back_batch = tf.placeholder(dtype=tf.float32, shape=[1, 64, 64, 1], name='back_batch')
 
         grad1_x, grad1_y = tf.image.image_gradients(former_batch)
+        grad1 = tf.concat([grad1_x, grad1_y], axis=-1)
         # grad2_x,grad2_y=tf.image.image_gradients(gray_batch)
         grad3_x, grad3_y = tf.image.image_gradients(back_batch)
+        grad3 = tf.concat([grad3_x, grad3_y], axis=-1)
 
-        grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
-        grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
+        #grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
+        #grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
 
-        former_feat =CAE_encoder(grad_dis_1, 'former', bn=args.bn, training=False)
+        former_feat = CAE_encoder(grad1, 'former', bn=args.bn, training=False)
         gray_feat = CAE_encoder(gray_batch, 'gray', bn=args.bn, training=False)
-        back_feat = CAE_encoder(grad_dis_2, 'back', bn=args.bn, training=False)
+        back_feat = CAE_encoder(grad3, 'back', bn=args.bn, training=False)
         # [batch_size,3072]
         feat = tf.concat([tf.layers.flatten(former_feat), tf.layers.flatten(gray_feat), tf.layers.flatten(back_feat)],
                          axis=1)
@@ -215,15 +217,17 @@ def test_CAE(CAE_model_path,args,gap=2, score_threshold=0.4):
         back_batch = tf.placeholder(dtype=tf.float32, shape=[1, 64, 64, 1], name='back_batch')
 
         grad1_x, grad1_y = tf.image.image_gradients(former_batch)
+        grad1 = tf.concat([grad1_x, grad1_y], axis=-1)
         # grad2_x,grad2_y=tf.image.image_gradients(gray_batch)
         grad3_x, grad3_y = tf.image.image_gradients(back_batch)
+        grad3 = tf.concat([grad3_x, grad3_y], axis=-1)
 
-        grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
-        grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
+        #grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
+        #grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
 
-        former_output = CAE(grad_dis_1, 'former', bn=args.bn, training=False)
+        former_output = CAE(grad1, 'former', bn=args.bn, training=False)
         gray_output = CAE(gray_batch, 'gray', bn=args.bn, training=False)
-        back_output = CAE(grad_dis_2, 'back', bn=args.bn, training=False)
+        back_output = CAE(grad3, 'back', bn=args.bn, training=False)
 
         outputs=tf.concat([former_output,gray_output,back_output],axis=1)
         targets=tf.concat([grad_dis_1,gray_batch,grad_dis_2],axis=1)
