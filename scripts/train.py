@@ -69,20 +69,22 @@ def train_CAE(path_boxes_np,args):
     gray_batch=tf.placeholder(dtype=tf.float32,shape=[batch_size,64,64,1],name='gray_batch')
     back_batch=tf.placeholder(dtype=tf.float32,shape=[batch_size,64,64,1],name='back_batch')
 
-    grad1_x,grad1_y=tf.image.image_gradients(former_batch)
+    grad1_x, grad1_y = tf.image.image_gradients(former_batch)
+    grad1=tf.concat([grad1_x,grad1_y],axis=-1)
     # grad2_x,grad2_y=tf.image.image_gradients(gray_batch)
-    grad3_x,grad3_y=tf.image.image_gradients(back_batch)
+    grad3_x, grad3_y = tf.image.image_gradients(back_batch)
+    grad3=tf.concat([grad3_x,grad3_y],axis=-1)
 
-    grad_dis_1=tf.sqrt(tf.square(grad1_x)+tf.square(grad1_y))
-    grad_dis_2=tf.sqrt(tf.square(grad3_x)+tf.square(grad3_y))
+    #grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
+    #grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
 
-    former_outputs=CAE.CAE(grad_dis_1,'former',bn=args.bn,training=True)
+    former_outputs=CAE.CAE(grad1,'former',bn=args.bn,training=True)
     gray_outputs=CAE.CAE(gray_batch,'gray',bn=args.bn,training=True)
-    back_outputs=CAE.CAE(grad_dis_2,'back',bn=args.bn,training=True)
+    back_outputs=CAE.CAE(grad3,'back',bn=args.bn,training=True)
 
-    former_loss=CAE.pixel_wise_L2_loss(former_outputs,grad_dis_1)
+    former_loss=CAE.pixel_wise_L2_loss(former_outputs,grad1)
     gray_loss=CAE.pixel_wise_L2_loss(gray_outputs,gray_batch)
-    back_loss=CAE.pixel_wise_L2_loss(back_outputs,grad_dis_2)
+    back_loss=CAE.pixel_wise_L2_loss(back_outputs,grad3)
 
     global_step=tf.Variable(0,dtype=tf.int32,trainable=False)
     global_step_a=tf.Variable(0,dtype=tf.int32,trainable=False)
@@ -114,12 +116,12 @@ def train_CAE(path_boxes_np,args):
     tf.summary.scalar('loss/former_loss',former_loss)
     tf.summary.scalar('loss/gray_loss',gray_loss)
     tf.summary.scalar('loss/back_loss',back_loss)
-    tf.summary.image('inputs/former',grad_dis_1)
+    #tf.summary.image('inputs/former',grad_dis_1)
     tf.summary.image('inputs/gray',gray_batch)
-    tf.summary.image('inputs/back',grad_dis_2)
-    tf.summary.image('outputs/former',former_outputs)
+    #tf.summary.image('inputs/back',grad_dis_2)
+    #tf.summary.image('outputs/former',former_outputs)
     tf.summary.image('outputs/gray',gray_outputs)
-    tf.summary.image('outputs/back',back_outputs)
+    #tf.summary.image('outputs/back',back_outputs)
     summary_op=tf.summary.merge_all()
 
     saver=tf.train.Saver(var_list=tf.global_variables())
@@ -163,15 +165,17 @@ def extract_features(path_boxes_np,CAE_model_path,args):
     back_batch=tf.placeholder(dtype=tf.float32,shape=[1,64,64,1],name='back_batch')
 
     grad1_x, grad1_y = tf.image.image_gradients(former_batch)
+    grad1=tf.concat([grad1_x,grad1_y],axis=-1)
     # grad2_x,grad2_y=tf.image.image_gradients(gray_batch)
     grad3_x, grad3_y = tf.image.image_gradients(back_batch)
+    grad3=tf.concat([grad3_x,grad3_y],axis=-1)
 
-    grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
-    grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
+    #grad_dis_1 = tf.sqrt(tf.square(grad1_x) + tf.square(grad1_y))
+    #grad_dis_2 = tf.sqrt(tf.square(grad3_x) + tf.square(grad3_y))
 
-    former_feat=CAE.CAE_encoder(grad_dis_1,'former',bn=args.bn,training=False)
+    former_feat=CAE.CAE_encoder(grad1,'former',bn=args.bn,training=False)
     gray_feat=CAE.CAE_encoder(gray_batch,'gray',bn=args.bn,training=False)
-    back_feat=CAE.CAE_encoder(grad_dis_2,'back',bn=args.bn,training=False)
+    back_feat=CAE.CAE_encoder(grad3,'back',bn=args.bn,training=False)
     # [batch_size,3072]
     feat=tf.concat([tf.layers.flatten(former_feat),tf.layers.flatten(gray_feat),tf.layers.flatten(back_feat)],axis=1)
 
