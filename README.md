@@ -1,5 +1,5 @@
 # object_centric_VAD
-An Tensorflow Implement of CVPR 2019 "Object-centric Auto-Encoders and Dummy Anomalies for Abnormal Event Detection in Video"
+An Tensorflow Re-Implement (Not Official) of CVPR 2019 "Object-centric Auto-Encoders and Dummy Anomalies for Abnormal Event Detection in Video"
 [Paper Link](http://openaccess.thecvf.com/content_CVPR_2019/papers/Ionescu_Object-Centric_Auto-Encoders_and_Dummy_Anomalies_for_Abnormal_Event_Detection_in_CVPR_2019_paper.pdf)
 
 __Recently, I haven't got the results as awesome as the paper mentioned .__(maybe any porblem in the code, I will be appreciated that if you point it out!)
