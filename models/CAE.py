@@ -34,7 +34,7 @@ def CAE(inputs,scope,bn=False,training=True):
         if bn:
             x=tf.layers.batch_normalization(x,training=training)
         x=tf.image.resize_nearest_neighbor(x,[64,64])
-        outputs=tf.layers.conv2d(inputs=x,filters=1,kernel_size=3,activation=None,padding='SAME')
+        outputs=tf.layers.conv2d(inputs=x,filters=inputs.shape[-1],kernel_size=3,activation=None,padding='SAME')
 
     return outputs
 
