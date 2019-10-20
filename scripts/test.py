@@ -130,8 +130,8 @@ def test(CAE_model_path, OVR_SVM_path, args,gap=2, score_threshold=0.4):
 
                     for score, box in zip(output_dict['detection_scores'], output_dict['detection_boxes']):
                         if score >= score_threshold:
-                            box = [int(box[0] * image_height), int(box[1] * image_height), int(box[2] * image_height),
-                                   int(box[3] * image_width)]
+                            box = [int(box[0] * image_height), int(box[1] * image_width), int((box[2]-box[0]) * image_height),
+                                   int((box[3]-box[1]) * image_width)]
                             img_gray = util.box_image_crop(frame_paths[frame_iter], box)
                             img_former = util.box_image_crop(frame_paths[frame_iter - gap], box)
                             img_back = util.box_image_crop(frame_paths[frame_iter + gap], box)
