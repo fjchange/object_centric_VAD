@@ -146,7 +146,7 @@ def score_smoothing(score,sigma=30):
         r += 1
     gaussian_temp=np.ones(r*2-1)
     for i in range(r*2-1):
-        gaussian_temp[i]=np.exp(-(i-r)**2/(2*sigma**2))/(sigma*np.sqrt(2*np.pi))
+        gaussian_temp[i]=np.exp(-(i-r+1)**2/(2*sigma**2))/(sigma*np.sqrt(2*np.pi))
     new_score=score
     for i in range(r,score.shape[0]-r):
         new_score[i]=np.dot(score[i-r:i+r-1],gaussian_temp)
