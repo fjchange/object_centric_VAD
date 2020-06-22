@@ -1,10 +1,12 @@
 # object_centric_VAD
-An Tensorflow Re-Implement (Not Official) of CVPR 2019 "Object-centric Auto-Encoders and Dummy Anomalies for Abnormal Event Detection in Video"
+An Tensorflow Re-Implement Trial (Not Official) of CVPR 2019 "Object-centric Auto-Encoders and Dummy Anomalies for Abnormal Event Detection in Video"
 [Paper Link](http://openaccess.thecvf.com/content_CVPR_2019/papers/Ionescu_Object-Centric_Auto-Encoders_and_Dummy_Anomalies_for_Abnormal_Event_Detection_in_CVPR_2019_paper.pdf)
 
 __Recently, I haven't got the results as awesome as the paper mentioned .__(maybe any porblem in the code, I will be appreciated that if you point it out!)
 
-__Now the code should be the same with the author, but I still fail to get the results as the author's.__
+__Something may need to be modified, but I have no time to do that__
+- 3D Gradients [ref](https://github.com/alliedel/anomalyframework_python) instead the 2D gradients in my code.
+- Some Problems may be in SVM Regressor to get 0-1 score
 
 ## Requirements
 > __tensorflow__ >=1.5.0 ( I use tensorflow 1.10.0 )
