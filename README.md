@@ -87,7 +87,7 @@ The framework include Three Parts:
  If you find this useful, please cite works as follows:
 ```
  misc{object_centrci_VAD,
-     author = {Jiachang Feng},
+     author = {Jia-Chang Feng},
      title = { A Implementation of {Obejct-Centric VAD} Using {Tensorflow}},
      year = {2019},
      howpublished = {\url{https://github.com/fjchange/object_centric_VAD}}
