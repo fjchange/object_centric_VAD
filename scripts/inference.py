@@ -28,7 +28,7 @@ def arg_parse():
     parser.add_argument('-g','--gpu',type=str,default='0',help='Use which gpu?')
     parser.add_argument('-d','--dataset',type=str,help='Train on which dataset')
     parser.add_argument('--dataset_folder',type=str,help='Dataset Fodlder Path')
-    parser.add_argument('--forzen_graph',type=str,help='The path of object detection,frozen graph is used')
+    parser.add_argument('--frozen_graph',type=str,help='The path of object detection,frozen graph is used')
     parser.add_argument('--box_imgs_npy_path',type=str,help='Path for npy file that store the \(box,img_path\)') 
     args=parser.parse_args()
     return args
@@ -141,7 +141,8 @@ if __name__=='__main__':
     os.environ['CUDA_VISIBLE_DEVICES']=args.gpu
     np_paths_boxes_path = args.box_imgs_npy_path
     # print(image_dataset_path)
-    graph=load_frozen_graph(args.graph_path)
+    image_dataset_path = args.dataset_folder
+    graph=load_frozen_graph(args.frozen_graph)
     frame_lists=util.get_frames_paths(args.dataset_folder,gap=2)
     # vis_detection_result(graph,frame_lists[20],'/home/'+args.machine+'/vis_result.jpg')
     run_inference_for_images_per_image(graph,image_dataset_path,np_paths_boxes_path,0.5)
